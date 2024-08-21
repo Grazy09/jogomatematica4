@@ -1,0 +1,138 @@
+// Declarar as variaveis
+var canvas;
+var ctx;
+var WIDTH;
+var HEIGHT;
+var SCIENTIST_SIZE;
+var BACTERIA_SIZE;
+var CURE_SIZE;
+var NUM_BACTERIA;
+var CURE_POINTS;
+var scientistX;
+var scientistY;
+var cureX;
+var cureY;
+var score;
+var bacteria;
+
+// Cria o canvas e o contexto
+const canvas = document.createElement('canvas');
+const ctx = canvas.getContext('2d');
+document.body.appendChild(canvas);
+//Imagens
+var bacteriaimg, cientistaimg, curaimg
+bacteriaimg = loadAnimation("bacteria.jpg");
+cientistaimg = loadAnimation("cientista.png");
+curaimg = loadAnimation("cura.png");
+// Configurações do jogo
+const WIDTH = window.innerWidth;
+const HEIGHT = window.innerHeight;
+const SCIENTIST_SIZE = 30;
+const BACTERIA_SIZE = 20;
+const CURE_SIZE = 20;
+const NUM_BACTERIA = 5;
+const CURE_POINTS = 10;
+
+canvas.width = WIDTH;
+canvas.height = HEIGHT;
+
+let scientistX = WIDTH / 2;
+let scientistY = HEIGHT / 2;
+let cureX = Math.random() * (WIDTH - CURE_SIZE);
+let cureY = Math.random() * (HEIGHT - CURE_SIZE);
+let score = 0;
+
+const bacteria = Array.from({ length: NUM_BACTERIA }, () => ({
+    x: Math.random() * (WIDTH - BACTERIA_SIZE),
+    y: Math.random() * (HEIGHT - BACTERIA_SIZE)
+}));
+
+// Função para desenhar o jogo
+function draw() {
+    ctx.clearRect(0, 0, WIDTH, HEIGHT);
+
+    // Desenha o cientista
+    ctx.fillStyle = 'green';
+    ctx.fillRect(scientistX, scientistY, SCIENTIST_SIZE, SCIENTIST_SIZE, cientistaimg);
+
+    // Desenha o ponto de cura
+    ctx.fillStyle = 'blue';
+    ctx.fillRect(cureX, cureY, CURE_SIZE, CURE_SIZE, curaimg);
+
+    // Desenha as bactérias
+    ctx.fillStyle = 'red';
+    bacteria.forEach(bacteriaRect => {
+        ctx.fillRect(bacteriaRect.x, bacteriaRect.y, BACTERIA_SIZE, BACTERIA_SIZE, bacteriaimg);
+    });
+
+    // Desenha a pontuação
+    ctx.fillStyle = 'black';
+    ctx.font = '20px Arial';
+    ctx.fillText(`Score: ${score}`, 10, 20);
+}
+
+// Verifica se dois retângulos se interceptam
+function rectsIntersect(a, b) {
+    return a.x < b.x + b.width &&
+           a.x + a.width > b.x &&
+           a.y < b.y + b.height &&
+           a.y + a.height > b.y;
+}
+
+// Gera uma nova posição para o ponto de cura
+function generateCure() {
+    cureX = Math.random() * (WIDTH - CURE_SIZE);
+    cureY = Math.random() * (HEIGHT - CURE_SIZE);
+}
+
+// Verifica colisões com o ponto de cura e bactérias
+function checkCollisions() {
+    const scientistRect = { x: scientistX, y: scientistY, width: SCIENTIST_SIZE, height: SCIENTIST_SIZE };
+    const cureRect = { x: cureX, y: cureY, width: CURE_SIZE, height: CURE_SIZE };
+
+    // Verifica colisão com o ponto de cura
+    if (rectsIntersect(scientistRect, cureRect)) {
+        score += CURE_POINTS;
+        generateCure();
+    }
+
+    // Verifica colisões com as bactérias
+    for (const bacteriaRect of bacteria) {
+        if (rectsIntersect(scientistRect, { x: bacteriaRect.x, y: bacteriaRect.y, width: BACTERIA_SIZE, height: BACTERIA_SIZE })) {
+            alert(`Game Over! Sua pontuação: ${score}`);
+            window.location.reload(); // Reinicia o jogo
+        }
+    }
+}
+
+// Controla o movimento do cientista
+function moveScientist(e) {
+    const step = 10;
+    switch (e.key) {
+        case 'ArrowUp':
+            scientistY = Math.max(0, scientistY - step);
+            break;
+        case 'ArrowDown':
+            scientistY = Math.min(HEIGHT - SCIENTIST_SIZE, scientistY + step);
+            break;
+        case 'ArrowLeft':
+            scientistX = Math.max(0, scientistX - step);
+            break;
+        case 'ArrowRight':
+            scientistX = Math.min(WIDTH - SCIENTIST_SIZE, scientistX + step);
+            break;
+    }
+    checkCollisions();
+    draw();
+}
+
+// Adiciona o evento para o teclado
+document.addEventListener('keydown', moveScientist);
+
+// Inicializa o desenho do jogo
+draw();
+function setup(){
+    cientistaimg.addImg(cientistaimg);
+    bacteriaimg.addImg(bacteriaimg);
+    curaimg.addImg(curaimg);
+}
